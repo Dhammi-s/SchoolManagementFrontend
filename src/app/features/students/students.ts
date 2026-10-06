@@ -8,6 +8,7 @@ import { MediaService } from '../../core/services/media.service';
 import {
   BusRouteDto,
   ClassDto,
+  CreateLoginResult,
   CreateStudentRequest,
   SectionDto,
   StudentDetail,
@@ -21,6 +22,25 @@ import {
   imports: [FormsModule, DecimalPipe, DatePipe],
   template: `
     <div class="space-y-6">
+      @if (createdCreds(); as c) {
+        <div class="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
+          <div class="flex items-start justify-between gap-4">
+            <div>
+              <div class="font-semibold text-emerald-800">Student login created</div>
+              <div class="text-sm text-emerald-700 mt-1">
+                Username: <b>{{ c.username }}</b> &nbsp;·&nbsp; Temporary password: <b>{{ c.tempPassword }}</b>
+              </div>
+              <div class="text-xs mt-1" [class.text-emerald-700]="c.emailed" [class.text-amber-700]="!c.emailed">
+                {{ c.emailed ? 'Credentials emailed to the student.' : 'Email not sent (no email on file or Brevo not configured) — share these manually.' }}
+              </div>
+            </div>
+            <div class="flex gap-2 shrink-0">
+              <button (click)="copyCreds(c.username, c.tempPassword)" class="rounded-lg border border-emerald-300 px-3 py-1.5 text-sm text-emerald-700 hover:bg-emerald-100">Copy</button>
+              <button (click)="createdCreds.set(null)" class="rounded-lg px-3 py-1.5 text-sm text-emerald-700 hover:bg-emerald-100">Dismiss</button>
+            </div>
+          </div>
+        </div>
+      }
       <div class="flex items-center justify-between flex-wrap gap-3">
         <h2 class="text-xl font-bold text-slate-800">Students</h2>
         <div class="flex items-center gap-3">
@@ -76,6 +96,8 @@ import {
               <input [(ngModel)]="form.guardianPhone" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2" /></label>
             <label class="block"><span class="text-xs text-slate-500">Address</span>
               <input [(ngModel)]="form.address" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2" /></label>
+            <label class="block"><span class="text-xs text-slate-500">Email (for login details)</span>
+              <input type="email" [(ngModel)]="form.email" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2" /></label>
             <label class="block"><span class="text-xs text-slate-500">Previous school</span>
               <input [(ngModel)]="form.previousSchoolName" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2" /></label>
             <label class="block sm:col-span-2"><span class="text-xs text-slate-500">Previous school details</span>
@@ -174,6 +196,15 @@ import {
               <input type="file" accept="image/*" (change)="uploadPhoto($event)" class="text-sm" />
               @if (uploadingPhoto()) { <span class="text-xs text-slate-400">Uploading…</span> }
             </div>
+            <div class="flex items-center gap-3">
+              <span class="text-sm font-medium text-slate-600">Login account:</span>
+              <button (click)="createLogin()" [disabled]="creatingLogin()"
+                class="rounded-lg px-3.5 py-2 text-sm font-medium text-white disabled:opacity-60"
+                [style.background-color]="'var(--brand-primary)'">
+                {{ creatingLogin() ? 'Creating…' : 'Create login & email' }}
+              </button>
+              <span class="text-xs text-slate-400">Emails credentials to {{ d.email || 'the student (no email on file)' }}</span>
+            </div>
           }
 
           <!-- Interests -->
@@ -241,6 +272,8 @@ export class Students {
   readonly error = signal<string | null>(null);
   readonly uploadingPhoto = signal(false);
   readonly uploadingDoc = signal(false);
+  readonly creatingLogin = signal(false);
+  readonly createdCreds = signal<CreateLoginResult | null>(null);
 
   filterClassId: number | null = null;
   form: CreateStudentRequest = this.blankForm();
@@ -336,6 +369,25 @@ export class Students {
       }),
       error: () => this.uploadingDoc.set(false),
     });
+  }
+
+  createLogin() {
+    const d = this.selected();
+    if (!d) return;
+    this.creatingLogin.set(true);
+    this.createdCreds.set(null);
+    this.service.createLogin(d.id).subscribe({
+      next: (res) => { this.creatingLogin.set(false); this.createdCreds.set(res); },
+      error: (err) => {
+        this.creatingLogin.set(false);
+        this.createdCreds.set(null);
+        alert(err?.error?.error ?? 'Could not create login (a login may already exist for this student).');
+      },
+    });
+  }
+
+  copyCreds(username?: string | null, password?: string | null) {
+    navigator.clipboard?.writeText(`Username: ${username}\nPassword: ${password}`);
   }
 
   private blankForm(): CreateStudentRequest {

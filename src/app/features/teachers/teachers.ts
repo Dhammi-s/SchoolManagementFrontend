@@ -7,6 +7,7 @@ import { MediaService } from '../../core/services/media.service';
 import {
   ClassDto,
   CreateTeacherRequest,
+  CreateTeacherResponse,
   CreateTimetablePeriodRequest,
   EmployeeDto,
   SubjectDto,
@@ -20,6 +21,25 @@ const DAYS = ['', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
   imports: [FormsModule],
   template: `
     <div class="space-y-6">
+      @if (createdCreds(); as c) {
+        <div class="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
+          <div class="flex items-start justify-between gap-4">
+            <div>
+              <div class="font-semibold text-emerald-800">Account created</div>
+              <div class="text-sm text-emerald-700 mt-1">
+                Username: <b>{{ c.username }}</b> &nbsp;·&nbsp; Temporary password: <b>{{ c.tempPassword }}</b>
+              </div>
+              <div class="text-xs mt-1" [class.text-emerald-700]="c.loginEmailed" [class.text-amber-700]="!c.loginEmailed">
+                {{ c.loginEmailed ? 'Credentials emailed to the teacher.' : 'Email not sent (no email on file or Brevo not configured) — share these manually.' }}
+              </div>
+            </div>
+            <div class="flex gap-2 shrink-0">
+              <button (click)="copyCreds(c.username, c.tempPassword)" class="rounded-lg border border-emerald-300 px-3 py-1.5 text-sm text-emerald-700 hover:bg-emerald-100">Copy</button>
+              <button (click)="createdCreds.set(null)" class="rounded-lg px-3 py-1.5 text-sm text-emerald-700 hover:bg-emerald-100">Dismiss</button>
+            </div>
+          </div>
+        </div>
+      }
       <div class="flex items-center justify-between">
         <h2 class="text-xl font-bold text-slate-800">Teachers</h2>
         @if (auth.hasRole('Principal', 'HeadMaster')) {
@@ -65,7 +85,7 @@ const DAYS = ['', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-3">
                 <label class="block"><span class="text-xs text-slate-500">Username</span>
                   <input [(ngModel)]="form.username" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2" /></label>
-                <label class="block"><span class="text-xs text-slate-500">Temporary password</span>
+                <label class="block"><span class="text-xs text-slate-500">Temporary password (optional — auto-generated if blank)</span>
                   <input [(ngModel)]="form.password" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2" /></label>
               </div>
             }
@@ -204,6 +224,7 @@ export class Teachers {
   readonly savingPeriod = signal(false);
   readonly periodError = signal<string | null>(null);
   readonly uploadingPhoto = signal(false);
+  readonly createdCreds = signal<CreateTeacherResponse | null>(null);
 
   form: CreateTeacherRequest = this.blankForm();
   period: CreateTimetablePeriodRequest = this.blankPeriod();
@@ -230,10 +251,11 @@ export class Teachers {
     this.saving.set(true);
     this.error.set(null);
     this.service.hire(this.form).subscribe({
-      next: () => {
+      next: (res) => {
         this.saving.set(false);
         this.showHire.set(false);
         this.form = this.blankForm();
+        if (res.username) this.createdCreds.set(res);
         this.loadTeachers();
       },
       error: (err) => {
@@ -287,6 +309,11 @@ export class Teachers {
       }),
       error: () => this.uploadingPhoto.set(false),
     });
+  }
+
+  copyCreds(username?: string | null, password?: string | null) {
+    const text = `Username: ${username}\nPassword: ${password}`;
+    navigator.clipboard?.writeText(text);
   }
 
   private blankForm(): CreateTeacherRequest {

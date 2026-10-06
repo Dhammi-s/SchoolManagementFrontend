@@ -64,6 +64,17 @@ export interface CreateTeacherRequest {
 export interface CreateTeacherResponse {
   employeeId: number;
   userId?: number | null;
+  username?: string | null;
+  tempPassword?: string | null;
+  loginEmailed: boolean;
+}
+
+export interface CreateLoginResult {
+  userId: number;
+  username: string;
+  tempPassword: string;
+  emailed: boolean;
+  email?: string | null;
 }
 
 export interface SubjectDto {
@@ -136,6 +147,7 @@ export interface StudentListItem {
 export interface StudentDetail extends StudentListItem {
   dateOfBirth?: string | null;
   address?: string | null;
+  email?: string | null;
   previousSchoolName?: string | null;
   previousSchoolDetails?: string | null;
   busRouteId?: number | null;
@@ -154,6 +166,7 @@ export interface CreateStudentRequest {
   sectionId?: number | null;
   rollNumber?: string | null;
   address?: string | null;
+  email?: string | null;
   guardianName?: string | null;
   guardianPhone?: string | null;
   previousSchoolName?: string | null;

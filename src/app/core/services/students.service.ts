@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { AppConfig } from './app-config.service';
 import {
   BusRouteDto,
+  CreateLoginResult,
   CreateStudentRequest,
   SectionDto,
   StudentDetail,
@@ -67,5 +68,9 @@ export class StudentsService {
 
   getBusRoutes(): Observable<BusRouteDto[]> {
     return this.http.get<BusRouteDto[]>(`${this.api}/bus-routes`);
+  }
+
+  createLogin(studentId: number, username?: string, password?: string): Observable<CreateLoginResult> {
+    return this.http.post<CreateLoginResult>(`${this.api}/students/${studentId}/login`, { username, password });
   }
 }
