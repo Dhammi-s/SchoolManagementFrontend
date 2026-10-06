@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { environment } from '../../../environments/environment';
+import { AppConfig } from './app-config.service';
 import {
   CreatePerformanceTestRequest,
   PerformanceTest,
@@ -12,7 +12,8 @@ import {
 @Injectable({ providedIn: 'root' })
 export class PerformanceService {
   private readonly http = inject(HttpClient);
-  private readonly api = environment.apiUrl;
+  private readonly config = inject(AppConfig);
+  private get api() { return this.config.apiUrl; }
 
   getTests(classId?: number | null, teacherId?: number | null): Observable<PerformanceTest[]> {
     const params: Record<string, string> = {};
@@ -43,7 +44,8 @@ export class PerformanceService {
 @Injectable({ providedIn: 'root' })
 export class PortalService {
   private readonly http = inject(HttpClient);
-  private readonly api = environment.apiUrl;
+  private readonly config = inject(AppConfig);
+  private get api() { return this.config.apiUrl; }
 
   profile() {
     return this.http.get(`${this.api}/me/profile`);

@@ -1,7 +1,7 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
-import { environment } from '../../../environments/environment';
+import { AppConfig } from './app-config.service';
 import { CurrentUser, LoginRequest, LoginResponse, Role } from '../models/auth.models';
 
 const TOKEN_KEY = 'sm.token';
@@ -10,7 +10,8 @@ const USER_KEY = 'sm.user';
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly http = inject(HttpClient);
-  private readonly api = environment.apiUrl;
+  private readonly config = inject(AppConfig);
+  private get api() { return this.config.apiUrl; }
 
   private readonly _user = signal<CurrentUser | null>(this.readUser());
 

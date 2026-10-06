@@ -1,13 +1,14 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
-import { environment } from '../../../environments/environment';
+import { AppConfig } from './app-config.service';
 import { Branding, SchoolSettings } from '../models/domain.models';
 
 @Injectable({ providedIn: 'root' })
 export class BrandingService {
   private readonly http = inject(HttpClient);
-  private readonly api = environment.apiUrl;
+  private readonly config = inject(AppConfig);
+  private get api() { return this.config.apiUrl; }
 
   readonly branding = signal<Branding | null>(null);
 

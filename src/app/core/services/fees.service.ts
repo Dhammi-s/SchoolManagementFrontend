@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { environment } from '../../../environments/environment';
+import { AppConfig } from './app-config.service';
 import {
   CreateFeeStructureRequest,
   FeeStructure,
@@ -12,7 +12,8 @@ import {
 @Injectable({ providedIn: 'root' })
 export class FeesService {
   private readonly http = inject(HttpClient);
-  private readonly api = environment.apiUrl;
+  private readonly config = inject(AppConfig);
+  private get api() { return this.config.apiUrl; }
 
   getStructures(classId?: number | null): Observable<FeeStructure[]> {
     const params: Record<string, string> = {};

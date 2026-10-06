@@ -3,5 +3,5 @@
 export const environment = {
   production: false,
   apiUrl: 'https://schoolmanagementj.runasp.net/api',
-  tenantDomain: 'greenwood.localhost',
+  tenantDomain: 'localhost',
 };

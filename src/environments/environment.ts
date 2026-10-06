@@ -4,5 +4,5 @@
 export const environment = {
   production: true,
   apiUrl: 'https://schoolmanagementj.runasp.net/api',
-  tenantDomain: 'app.schoolmanagementj.runasp.net',
+  tenantDomain: 'localhost',
 };

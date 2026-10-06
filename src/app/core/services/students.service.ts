@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { environment } from '../../../environments/environment';
+import { AppConfig } from './app-config.service';
 import {
   BusRouteDto,
   CreateStudentRequest,
@@ -15,7 +15,8 @@ import {
 @Injectable({ providedIn: 'root' })
 export class StudentsService {
   private readonly http = inject(HttpClient);
-  private readonly api = environment.apiUrl;
+  private readonly config = inject(AppConfig);
+  private get api() { return this.config.apiUrl; }
 
   list(classId?: number | null, search?: string): Observable<StudentListItem[]> {
     const params: Record<string, string> = {};
